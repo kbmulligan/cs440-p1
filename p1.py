@@ -12,13 +12,18 @@ class Graph:
     name = ""
     edges = []
     amatrix = []
+    nodes = []
     
     def __init__(self, fn):
         self.edges, self.name = read_graph(fn)
 
-    def maximum_clique(self):
-        return 1
-    
+        self.nodes = list(self.get_nodes())
+
+        self.amatrix = [ [0 for i in range(self.num_nodes())] for j in range(self.num_nodes()) ]
+
+        self.init_edges()
+        
+        
     def get_name(self):
         return self.name
     
@@ -27,7 +32,7 @@ class Graph:
             print_edge(edge)
             
     def num_nodes(self):
-        return len(self.get_nodes())
+        return len(self.nodes)
         
     def get_nodes(self):
         nodes = []
@@ -36,6 +41,26 @@ class Graph:
                 nodes.append(node)
             
         return set(nodes)
+
+    def get_node_index(self, node_id):
+        return self.nodes.index(node_id)
+
+    def get_node_id(self, node_index):
+        return self.nodes[node_index]
+
+    def put_edge_in_matrix (self, edge):
+        if (len(edge) > 1):
+            self.amatrix[self.get_node_index(edge[0])][self.get_node_index(edge[1])] = 1    # do edge
+            self.amatrix[self.get_node_index(edge[1])][self.get_node_index(edge[0])] = 1    # do reciprocal
+            self.amatrix[self.get_node_index(edge[0])][self.get_node_index(edge[0])] = 1    # do first node
+            self.amatrix[self.get_node_index(edge[1])][self.get_node_index(edge[1])] = 1    # do second node
+        else:
+            self.amatrix[self.get_node_index(edge[0])][self.get_node_index(edge[0])] = 1
+
+    def init_edges(self):
+        for edge in self.edges:
+            self.put_edge_in_matrix(edge)
+            
     
 def read_graph (filename):
 
@@ -62,6 +87,8 @@ def read_graph (filename):
                 tokens = gData.split()               # remove whitespace
                 #print tokens
 
+                #tokens = tokens.split("--")
+
                 edge = remove_non_nodes(tokens)
 
                 if edge[0] not in prohibited_chars:
@@ -83,21 +110,32 @@ def remove_non_nodes (tokens):
 def print_edge (edge):
     print '--'.join(edge)
 
-
-def put_edge_in_matrix (edge, matrix):
-    pass
-
+def print_matrix(mat):
+    for line in mat:
+        print line
+    
 def maximum_clique(g):
     return 1
-    
-g1 = Graph("graph.gv")
-print g1.get_name()
-g1.print_edges()
-print g1.get_nodes()
-print g1.num_nodes()
 
-g2 = Graph("graph2.gv")
-print g2.get_name()
-g2.print_edges()
-print g2.get_nodes()
-print g2.num_nodes()
+def is_clique(g):
+    clique = True
+    for line in g.amatrix:
+        if 0 in line:
+            clique = clique and False        
+    return clique
+
+def do_graph(gfn):
+    g = Graph(gfn)
+    print ""
+    print g.get_name()
+    g.print_edges()
+    print "Nodes: " + str(g.num_nodes())
+    # print g.get_nodes()
+    print_matrix(g.amatrix)
+    print "Clique: " + str(is_clique(g))
+
+do_graph("graph.gv")
+do_graph("graph2.gv")
+do_graph("graphex.gv")
+do_graph("graph1.gv")
+
