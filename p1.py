@@ -5,16 +5,17 @@
 # Dr. Asa Ben-Hur
 ##############################################
 
-import itertools
+import itertools, copy
 
 prohibited_chars = ['{', '}', '/']
 
 class Graph:
 
-    name = ""
-    edges = []
-    amatrix = []
-    nodes = []
+    name = ""               # id of graph
+    edges = []              # list of edges
+    amatrix = []            # adjacency matrix
+    nodes = []              # list of node ids
+    cliques = []            # list of Graph objects which are cliques for this graph
     
     def __init__(self, fn):
         if (fn != ''):
@@ -85,9 +86,10 @@ class Graph:
         nodes = []
         for edge in self.edges:
             for node in edge:
-                nodes.append(node)
+                if (node not in nodes):
+                    nodes.append(node)
             
-        return set(nodes)
+        return nodes # make this set(nodes) if the above code does not remove duplicates
 
     def get_node_index(self, node_id):
         return self.nodes.index(node_id)
@@ -105,8 +107,12 @@ class Graph:
             self.amatrix[self.get_node_index(edge[0])][self.get_node_index(edge[0])] = 1
 
     def init_edges(self):
-        for edge in self.edges:
+        for edge in self.edges:                     # add each edge to the matrix
             self.put_edge_in_matrix(edge)
+
+        for node in self.nodes:                     # add all nodes that didn't have an explicit edge for themselves
+                if list(node) not in self.edges:
+                    self.edges.append(list(node))
 
     def remove_node(self, index):
         to_remove = self.get_node_id(index)         # get id first
@@ -120,12 +126,33 @@ class Graph:
         return
 
     def remove_edges_with_node(self, node):
+        to_remove = []
+        for edge in self.edges:
+            if node in edge:
+                to_remove.append(edge)
+        for edge in to_remove:
+            self.edges.remove(edge)
         return
 
     def print_matrix(self):
         print '   ' + '  '.join(self.nodes)
         for x in range(self.get_size()):
             print self.nodes[x], self.amatrix[x]
+
+    def is_clique(self):
+        clique = True
+        for y in self.get_matrix():
+            for x in y:
+                if (x == 0):
+                    clique = clique and False        
+        return clique
+
+    def add_clique(self, cg):
+        self.cliques.append(cg)
+        return
+
+    def get_cliques(self):
+        return self.cliques
 
             
 def graph_from_edges(new_edges):
@@ -204,15 +231,17 @@ def print_edge (edge):
     print '--'.join(edge)
     
 def maximum_clique(g):
-    return 1
+    cliq = find_clique(g)
 
-def is_clique(g):
-    clique = True
-    for y in g.get_matrix():
-        for x in y:
-            if (x == 0):
-                clique = clique and False        
-    return clique
+    # print "Found ", len(cliq.get_cliques()), " cliques!!!"
+    sizes = []
+    for graph in cliq.get_cliques():
+        sizes.append(graph.get_size())
+        # do_graph(graph)
+
+    print "Maximum cliques size was ", max(sizes)
+    return max(sizes)
+
 
 def remove_node(old_mat, index):
     mat = list(old_mat)
@@ -224,43 +253,53 @@ def remove_node(old_mat, index):
 
 # returns graph g of clique it finds
 def find_clique(gx):
-    if is_clique(gx):
-        print "\nFound clique! See below..."
-        print "If branch"
-        do_graph(gx)
-        print "Find_clique complete...showing graph..."
-    else:
-        print "Not clique, still looking...", gx.num_nodes(), " nodes"
-        print_matrix(gx.get_matrix())
-        gx.remove_node(gx.num_nodes()-1)
-        find_clique(gx)
-        print "Else branch"
-        do_graph(gx)
+    if gx.is_clique():
+        # print "\nFound clique! SIZE: ", gx.get_size(), " See below..."
+        # print "If branch"
+        #do_graph(gx)
+        
+        # print "Find_clique complete...showing AND adding graph..."
+        gx.add_clique(gx)
 
-    return graph_from_graph(gx)
+    else:
+        # print "Not clique, still looking...", gx.num_nodes(), " nodes"
+        # gx.print_matrix()
+
+        for x in range(gx.num_nodes()):
+            gn = copy.deepcopy(gx)
+            gn.remove_node(x)
+            # print "Removed node ", x, " ... finding clique again..."
+            find_clique(gn)
+        
+        # print "End  else branch"
+        #do_graph(gx)
+
+    return copy.deepcopy(gx)
             
 
 def do_graph(g):
-    print "...Doing graph"
+    print "---------------\\\\"
     print g.get_name()
     g.print_edges()
+    # print g.edges
     print "Nodes: " + str(g.num_nodes())
+    print "Clique: " + str(g.is_clique())
     # print g.get_nodes()
     g.print_matrix()
-    print "Clique: " + str(is_clique(g))
+    print "---------------//"
 
 g0 = Graph("graph.gv")
 g1 = Graph("graph1.gv")
 g2 = Graph("graph2.gv")
 g3 = Graph("graphex.gv")
 
-do_graph(g0)
-do_graph(g1)
-do_graph(g2)
-do_graph(g3)
+# do_graph(g0)
+# do_graph(g1)
+# do_graph(g2)
+# do_graph(g3)
 
 # print "Start find clique ----------"
 # cliq = find_clique(g0)
 # do_graph(g0)
 
-cliq = find_clique(g0)
+maximum_clique(g3)
