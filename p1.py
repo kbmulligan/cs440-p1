@@ -7,7 +7,7 @@
 
 import itertools, copy
 
-DO_TESTING = True
+DO_TESTING = False
 DO_VERBOSE_PARSING = False
 
 prohibited_chars = ['{', '}', '/']
@@ -62,7 +62,7 @@ class Graph:
                     if DO_VERBOSE_PARSING:
                         print "Whitespace removed:     ", clean_tokens        
                     
-                    edge = remove_non_nodes(clean_tokens)       # remove prohibited chars
+                    edge = [x for x in clean_tokens if x if x not in prohibited_chars]       # remove prohibited chars
                     if DO_VERBOSE_PARSING:
                         print "Non-nodes removed :     ", edge
 
@@ -71,7 +71,8 @@ class Graph:
                     
         gf.close()
         return edges, name
-        
+    
+
     def get_name(self):
         return self.name
 
@@ -83,7 +84,10 @@ class Graph:
     
     def print_edges(self):
         for edge in self.edges:
-            print_edge(edge)
+            self.print_edge(edge)
+
+    def print_edge (self, edge):
+        print '--'.join(edge)
             
     def num_nodes(self):
         return len(self.nodes)
@@ -98,7 +102,7 @@ class Graph:
                 if (node not in nodes):
                     nodes.append(node)
             
-        return nodes # make this set(nodes) if the above code does not remove duplicates
+        return nodes
 
     def get_node_index(self, node_id):
         return self.nodes.index(node_id)
@@ -164,7 +168,94 @@ class Graph:
     def get_cliques(self):
         return self.cliques
 
-            
+    # given 2 node indices, returns true if they are connected
+    def nodes_connected(self, n1, n2):
+        adjacent = False
+        if (self.amatrix[n1][n2] == 1):
+            adjacent = True
+        else:
+            pass
+        return adjacent
+
+    # given 2 node id's, returns true if they are connected
+    def nodes_connected_id(self, id1, id2):
+        return self.nodes_connected(self.get_node_index(id1), self.get_node_index(id2))
+
+    # given a node and a list of nodes, return true if that node is connected to all nodes in list
+    def node_connected_to_list(self, node_a, nodes_list):
+        connected = True
+
+        for node in nodes_list:
+            if self.nodes_connected_id(node_a, node):
+                connected = connected and True
+            else:
+                connected = connected and False
+        
+        return connected
+
+
+    # returns combination object of all node combinations with 1 node removed
+    def node_combinations(self):
+        return itertools.combinations(self.get_nodes(), self.get_size()-1)
+
+    def generate_all_node_combinations(self):
+        all_combinations = []
+
+        for x in range(1, self.get_size()+1):
+            combos_length_x = itertools.combinations(self.get_nodes(), x)
+            all_combinations.extend(combos_length_x)
+
+        return all_combinations
+
+
+    def find_cliques(self):
+        cliques = []
+
+        all_combos = self.generate_all_node_combinations()
+
+        for combo in all_combos:
+            if (self.is_combo_clique(combo)) and (combo not in cliques):
+                cliques.append(combo)
+
+        self.cliques = cliques
+
+        return cliques
+
+    def is_combo_clique(self, combo):
+        connected = False
+        if (len(combo) == 1):
+            connected = True
+        elif (len(combo) == 2):
+            connected = self.nodes_connected_id(combo[0], combo[1])
+        else:
+            connected = self.node_connected_to_list(combo[0], combo[:])
+        return connected
+
+
+
+    def get_max_clique(self):
+
+        self.find_cliques()
+
+        max_cliq = ''
+        max_size = 0
+
+        sizes = [len(cliq) for cliq in self.get_cliques()]
+
+        for cliq in self.get_cliques():
+            if (len(cliq) > max_size):
+                max_size = len(cliq)
+                max_cliq = cliq
+
+        # print "Cliques: ", self.get_cliques()
+        # print "Clique sizes: ", sizes
+        # print "Maximum cliques size was ", max_size
+
+        return max_cliq
+
+################ END CLASS GRAPH ################################
+
+# GRAPH CREATORS            
 def graph_from_edges(new_edges):
     g = Graph('')
     g.edges = list(new_edges)
@@ -188,66 +279,10 @@ def graph_from_graph(parent):
     g.edges = list(parent.get_edges())
     return g
 
-def remove_non_nodes (tokens):
-    new_list = [x for x in tokens if x if x not in prohibited_chars]
-
-    return new_list
-
-def print_matrix(mat):
-    for line in mat:
-        print line
-
-def print_edge (edge):
-    print '--'.join(edge)
     
-def maximum_clique(g):
-    cliq = find_clique(g)
+def maximum_clique(g):                          # standalone function that returns max clique of graph
+    return len(g.get_max_clique())
 
-    # print "Found ", len(cliq.get_cliques()), " cliques!!!"
-    sizes = []
-    for graph in cliq.get_cliques():
-        sizes.append(graph.get_size())
-        # do_graph(graph)
-
-    print "Cliques: ", cliq.get_cliques()
-    print "Clique sizes: ", sizes
-    # print "Maximum cliques size was ", max(sizes)
-    return max(sizes)
-
-
-def remove_node(old_mat, index):
-    mat = list(old_mat)
-    if (len(mat) > 1):
-        for y in range(len(mat)):
-            mat[y].pop(index)           # remove index in each row
-        mat.pop(index)                  # remove index row
-    return mat
-
-# returns graph g of clique it finds
-def find_clique(gx):
-    if gx.is_clique():
-        # print "\nFound clique! SIZE: ", gx.get_size(), " See below..."
-        # print "If branch"
-        # do_graph(gx)
-        
-        # print "Find_clique complete...showing AND adding graph..."
-        gx.add_clique(gx)
-
-    else:
-        # print "Not clique, still looking...", gx.num_nodes(), " nodes"
-        # gx.print_matrix()
-
-        for x in range(gx.num_nodes()):
-            gn = copy.deepcopy(gx)
-            gn.remove_node(x)
-            # print "Removed node ", x, " ... finding clique again..."
-            find_clique(copy.deepcopy(gn))
-        
-        # print "End  else branch"
-        #do_graph(gx)
-
-    return copy.deepcopy(gx)
-            
 
 def do_graph(g):
     print "---------------\\\\"
@@ -259,22 +294,42 @@ def do_graph(g):
     print "---------------//"
 
 
-test_files = [   "graphex.gv",
-                 "graph.gv", 
+################ TESTING ###############################
+
+test_files = [   "graph.gv", 
+                 "graph0.gv",
                  "graph1.gv", 
                  "graph2.gv",
                  "graph3.gv",
                  "graph4.gv",
+                 "graph5.gv",
+                 "graphex.gv"
                  ]
 
-# if DO_TESTING:
-#     for test in test_files:
-#         print test, " -> ", maximum_clique(Graph(test))
-test1 = "graph2.gv"
-max1 = maximum_clique(Graph(test1))
-print test1, " -> ", max1, "\n"
+if DO_TESTING:
+    for test in test_files:
+        print test , " -> ", maximum_clique(Graph(test))
+        # print "Combos: ", Graph(test).generate_all_node_combinations()
 
-test0 = "graph1.gv"
-max0 = maximum_clique(Graph(test0))
-print test0, " -> ", max0, "\n"
+
+# test0 = "graph1.gv"
+# max0 = maximum_clique(Graph(test0))
+# print test0, " -> ", max0, "\n"
+
+# test1 = "graph2.gv"
+# max1 = maximum_clique(Graph(test1))
+# print test1, " -> ", max1, "\n"
+
+
+
+# g1 = Graph(test1)
+
+# do_graph(g1)
+# combos = g1.generate_all_node_combinations()
+
+# print combos
+
+
+
+
 
