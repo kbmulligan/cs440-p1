@@ -44,21 +44,22 @@ class Graph:
             for line in gf:                              # read edges
                 if line != "":
                     gData = line
-                    #print gData
+                    print "Raw:                 ", gData
                     
                     gData = gData.split(";")[0]          # remove comment (everything after ";")
-                    #print gData
+                    print "Comment removed:     ", gData
                     
                     tokens = gData.split()               # remove whitespace
-                    #print tokens
-
-                    #tokens = tokens.split("--")
+                    print "Whitespace removed:  ", tokens
 
                     edge = remove_non_nodes(tokens)
+                    print "Non nodes removed:   ", edge
 
-                    if edge[0] not in prohibited_chars:
+                    if edge:
                         edges.append(edge)
-                        #print edge
+                    #     #print edge
+
+
                     
         gf.close()
         return edges, name
@@ -177,51 +178,18 @@ def graph_from_graph(parent):
     g.nodes = list(range(len(g.amatrix)))
     g.edges = list(parent.get_edges())
     return g
-    
-def read_graph (filename):
-
-    name = ''
-    edges = []
-
-    gf = open(filename, 'r')
-    if gf == None:
-        print "Error: Could not open file."
-    else:
-        
-        title = gf.readline()                        # read title
-        if title != "":
-            name = title.strip("\n {")
-            
-        for line in gf:                              # read edges
-            if line != "":
-                gData = line
-                #print gData
-                
-                gData = gData.split(";")[0]          # remove comment (everything after ";")
-                #print gData
-                
-                tokens = gData.split()               # remove whitespace
-                #print tokens
-
-                #tokens = tokens.split("--")
-
-                edge = remove_non_nodes(tokens)
-
-                if edge[0] not in prohibited_chars:
-                    edges.append(edge)
-                    #print edge
-                
-    gf.close()
-    return edges, name
 
 def remove_non_nodes (tokens):
-    newList = []
-    
-    for x in tokens:
-        if x != '--':
-            newList.append(x)
+    stripped_list = []
+    new_list = []
 
-    return newList
+    for token in tokens:
+        stripped_list.append(token.strip('--'))
+        print "Stripped ", token
+
+    new_list = [x for x in stripped_list if x if x not in prohibited_chars]
+
+    return new_list
 
 def print_matrix(mat):
     for line in mat:
@@ -239,7 +207,7 @@ def maximum_clique(g):
         sizes.append(graph.get_size())
         # do_graph(graph)
 
-    print "Maximum cliques size was ", max(sizes)
+    # print "Maximum cliques size was ", max(sizes)
     return max(sizes)
 
 
@@ -289,11 +257,12 @@ def do_graph(g):
     print "---------------//"
 
 g0 = Graph("graph.gv")
-g1 = Graph("graph1.gv")
-g2 = Graph("graph2.gv")
-g3 = Graph("graphex.gv")
+# g1 = Graph("graph1.gv")
+# g2 = Graph("graph2.gv")
+# g3 = Graph("graphex.gv")
+# t0 = Graph("test1.gv")
 
-# do_graph(g0)
+do_graph(g0)
 # do_graph(g1)
 # do_graph(g2)
 # do_graph(g3)
@@ -302,4 +271,4 @@ g3 = Graph("graphex.gv")
 # cliq = find_clique(g0)
 # do_graph(g0)
 
-maximum_clique(g3)
+# maximum_clique(g3)
