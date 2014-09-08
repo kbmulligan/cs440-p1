@@ -157,7 +157,8 @@ class Graph:
         return clique
 
     def add_clique(self, cg):
-        self.cliques.append(cg)
+        if cg not in self.cliques:
+            self.cliques.append(cg)
         return
 
     def get_cliques(self):
@@ -208,6 +209,8 @@ def maximum_clique(g):
         sizes.append(graph.get_size())
         # do_graph(graph)
 
+    print "Cliques: ", cliq.get_cliques()
+    print "Clique sizes: ", sizes
     # print "Maximum cliques size was ", max(sizes)
     return max(sizes)
 
@@ -238,7 +241,7 @@ def find_clique(gx):
             gn = copy.deepcopy(gx)
             gn.remove_node(x)
             # print "Removed node ", x, " ... finding clique again..."
-            find_clique(gn)
+            find_clique(copy.deepcopy(gn))
         
         # print "End  else branch"
         #do_graph(gx)
@@ -250,27 +253,11 @@ def do_graph(g):
     print "---------------\\\\"
     print g.get_name()
     g.print_edges()
-    # print g.edges
     print "Nodes: " + str(g.num_nodes())
     print "Clique: " + str(g.is_clique())
-    # print g.get_nodes()
     g.print_matrix()
     print "---------------//"
 
-# g0 = Graph("graph.gv")
-# g1 = Graph("graph1.gv")
-# g2 = Graph("graph2.gv")
-# g3 = Graph("graphex.gv")
-# t0 = Graph("test1.gv")
-
-# do_graph(g0)
-# do_graph(g1)
-# do_graph(g2)
-# do_graph(g3)
-
-# print "Start find clique ----------"
-# cliq = find_clique(g0)
-# do_graph(g0)
 
 test_files = [   "graphex.gv",
                  "graph.gv", 
@@ -284,8 +271,10 @@ test_files = [   "graphex.gv",
 #     for test in test_files:
 #         print test, " -> ", maximum_clique(Graph(test))
 test1 = "graph2.gv"
-print test1, " -> ", maximum_clique(Graph(test1))
+max1 = maximum_clique(Graph(test1))
+print test1, " -> ", max1, "\n"
 
-test = "graph1.gv"
-print test, " -> ", maximum_clique(Graph(test))
+test0 = "graph1.gv"
+max0 = maximum_clique(Graph(test0))
+print test0, " -> ", max0, "\n"
 
