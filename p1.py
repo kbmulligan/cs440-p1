@@ -7,6 +7,9 @@
 
 import itertools, copy
 
+DO_TESTING = True
+DO_VERBOSE_PARSING = False
+
 prohibited_chars = ['{', '}', '/']
 
 class Graph:
@@ -44,22 +47,27 @@ class Graph:
             for line in gf:                              # read edges
                 if line != "":
                     gData = line
-                    print "Raw:                 ", gData
+                    if DO_VERBOSE_PARSING:
+                        print "\nRaw               :   ", gData.rstrip('\n')
                     
-                    gData = gData.split(";")[0]          # remove comment (everything after ";")
-                    print "Comment removed:     ", gData
+                    gData = gData.split(";")[0]                 # remove comment (everything after ";")
+                    if DO_VERBOSE_PARSING:
+                        print "Comment removed   :   ", gData
+
+                    tokens = gData.split("--")                  # split on --
+                    if DO_VERBOSE_PARSING:
+                        print "Split along '--'' :     ", tokens
+
+                    clean_tokens = [t.strip() for t in tokens]  # remove whitespace
+                    if DO_VERBOSE_PARSING:
+                        print "Whitespace removed:     ", clean_tokens        
                     
-                    tokens = gData.split()               # remove whitespace
-                    print "Whitespace removed:  ", tokens
+                    edge = remove_non_nodes(clean_tokens)       # remove prohibited chars
+                    if DO_VERBOSE_PARSING:
+                        print "Non-nodes removed :     ", edge
 
-                    edge = remove_non_nodes(tokens)
-                    print "Non nodes removed:   ", edge
-
-                    if edge:
+                    if edge and edge not in edges:
                         edges.append(edge)
-                    #     #print edge
-
-
                     
         gf.close()
         return edges, name
@@ -180,14 +188,7 @@ def graph_from_graph(parent):
     return g
 
 def remove_non_nodes (tokens):
-    stripped_list = []
-    new_list = []
-
-    for token in tokens:
-        stripped_list.append(token.strip('--'))
-        print "Stripped ", token
-
-    new_list = [x for x in stripped_list if x if x not in prohibited_chars]
+    new_list = [x for x in tokens if x if x not in prohibited_chars]
 
     return new_list
 
@@ -224,7 +225,7 @@ def find_clique(gx):
     if gx.is_clique():
         # print "\nFound clique! SIZE: ", gx.get_size(), " See below..."
         # print "If branch"
-        #do_graph(gx)
+        # do_graph(gx)
         
         # print "Find_clique complete...showing AND adding graph..."
         gx.add_clique(gx)
@@ -256,13 +257,13 @@ def do_graph(g):
     g.print_matrix()
     print "---------------//"
 
-g0 = Graph("graph.gv")
+# g0 = Graph("graph.gv")
 # g1 = Graph("graph1.gv")
 # g2 = Graph("graph2.gv")
 # g3 = Graph("graphex.gv")
 # t0 = Graph("test1.gv")
 
-do_graph(g0)
+# do_graph(g0)
 # do_graph(g1)
 # do_graph(g2)
 # do_graph(g3)
@@ -271,4 +272,20 @@ do_graph(g0)
 # cliq = find_clique(g0)
 # do_graph(g0)
 
-# maximum_clique(g3)
+test_files = [   "graphex.gv",
+                 "graph.gv", 
+                 "graph1.gv", 
+                 "graph2.gv",
+                 "graph3.gv",
+                 "graph4.gv",
+                 ]
+
+# if DO_TESTING:
+#     for test in test_files:
+#         print test, " -> ", maximum_clique(Graph(test))
+test1 = "graph2.gv"
+print test1, " -> ", maximum_clique(Graph(test1))
+
+test = "graph1.gv"
+print test, " -> ", maximum_clique(Graph(test))
+
