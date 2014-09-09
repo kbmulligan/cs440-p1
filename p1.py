@@ -5,7 +5,7 @@
 # Dr. Asa Ben-Hur
 ##############################################
 
-import itertools, copy
+import itertools, copy, re
 
 DO_TESTING = False
 DO_VERBOSE_PARSING = False
@@ -48,27 +48,33 @@ class Graph:
                 if line != "":
                     gData = line
                     if DO_VERBOSE_PARSING:
-                        print "\nRaw               :   ", gData.rstrip('\n')
+                        print "\nRaw                 :   ", gData.rstrip('\n')
                     
-                    gData = gData.split(";")[0]                 # remove comment (everything after ";")
+                    if gData[0:2] == '/*':
+                        gData = ''
+                        if DO_VERBOSE_PARSING:
+                            print "There's a comment only line!!!"
+
+
+                    gData = gData.split(";")[0]                 # remove everything after ";")
                     if DO_VERBOSE_PARSING:
-                        print "Comment removed   :   ", gData
+                        print "All after ; removed :   ", gData
 
                     tokens = gData.split("--")                  # split on --
                     if DO_VERBOSE_PARSING:
-                        print "Split along '--'' :     ", tokens
+                        print "Split along '--''   :     ", tokens
 
                     clean_tokens = [t.strip() for t in tokens]  # remove whitespace
                     if DO_VERBOSE_PARSING:
-                        print "Whitespace removed:     ", clean_tokens        
+                        print "Whitespace removed  :     ", clean_tokens        
                     
                     edge = [x for x in clean_tokens if x if x not in prohibited_chars]       # remove prohibited chars
                     if DO_VERBOSE_PARSING:
-                        print "Non-nodes removed :     ", edge
+                        print "Non-nodes removed   :     ", edge
 
                     if edge and edge not in edges:
                         edges.append(edge)
-                    
+
         gf.close()
         return edges, name
     
@@ -123,9 +129,9 @@ class Graph:
         for edge in self.edges:                     # add each edge to the matrix
             self.put_edge_in_matrix(edge)
 
-        for node in self.nodes:                     # add all nodes that didn't have an explicit edge for themselves
-                if list(node) not in self.edges:
-                    self.edges.append(list(node))
+        # for node in self.nodes:                     # add all nodes that didn't have an explicit edge for themselves
+        #         if list(node) not in self.edges:
+        #             self.edges.append(list(node))
 
     def remove_node(self, index):
         to_remove = self.get_node_id(index)         # get id first
@@ -303,33 +309,11 @@ test_files = [   "graph.gv",
                  "graph3.gv",
                  "graph4.gv",
                  "graph5.gv",
-                 "graphex.gv"
+                 "graphex.gv",
+                 "file3.gv"
                  ]
 
 if DO_TESTING:
     for test in test_files:
         print test , " -> ", maximum_clique(Graph(test))
-        # print "Combos: ", Graph(test).generate_all_node_combinations()
-
-
-# test0 = "graph1.gv"
-# max0 = maximum_clique(Graph(test0))
-# print test0, " -> ", max0, "\n"
-
-# test1 = "graph2.gv"
-# max1 = maximum_clique(Graph(test1))
-# print test1, " -> ", max1, "\n"
-
-
-
-# g1 = Graph(test1)
-
-# do_graph(g1)
-# combos = g1.generate_all_node_combinations()
-
-# print combos
-
-
-
-
 
