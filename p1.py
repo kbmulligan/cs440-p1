@@ -7,7 +7,7 @@
 
 import itertools, copy, re
 
-DO_TESTING = True
+DO_TESTING = False
 DO_VERBOSE_PARSING = False
 
 prohibited_chars = ['{', '}', '/']
