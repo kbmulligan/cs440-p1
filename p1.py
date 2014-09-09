@@ -7,7 +7,7 @@
 
 import itertools, copy, re
 
-DO_TESTING = False
+DO_TESTING = True
 DO_VERBOSE_PARSING = False
 
 prohibited_chars = ['{', '}', '/']
@@ -234,7 +234,7 @@ class Graph:
         elif (len(combo) == 2):
             connected = self.nodes_connected_id(combo[0], combo[1])
         else:
-            connected = self.node_connected_to_list(combo[0], combo[:])
+            connected = self.node_connected_to_list(combo[0], combo[:]) and self.is_combo_clique(combo[1:])
         return connected
 
 
@@ -310,7 +310,10 @@ test_files = [   "graph.gv",
                  "graph4.gv",
                  "graph5.gv",
                  "graphex.gv",
-                 "file3.gv"
+                 "file3.gv",
+                 "file4.dot",
+                 "file5.dot",
+                 "file6.dot"
                  ]
 
 if DO_TESTING:
